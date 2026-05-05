@@ -61,4 +61,18 @@ public class PostService {
                ).toList();
     }
 
+    public PostResponse getPostById(Long id){
+
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        return new PostResponse(
+                post.getId(),
+                post.getTitle(),
+                post.getContent(),
+                post.getUser().getId(),
+                post.getUser().getName()
+        );
+    }
+
 }
