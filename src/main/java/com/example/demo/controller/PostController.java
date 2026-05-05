@@ -4,6 +4,7 @@ import com.example.demo.dto.PostRequest;
 import com.example.demo.dto.PostResponse;
 import com.example.demo.entity.Post;
 import com.example.demo.service.PostService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +37,12 @@ public class PostController {
     @PutMapping("{id}")
     public PostResponse updatePost(@RequestBody PostRequest request, @PathVariable Long id){
         return postService.updatePost(request, id);
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long id){
+        postService.deletePost(id);
+        return ResponseEntity.noContent().build();
     }
 
 

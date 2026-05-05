@@ -5,6 +5,7 @@ import com.example.demo.dto.PostResponse;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
 import com.example.demo.repository.PostRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.sound.midi.Soundbank;
@@ -63,7 +64,7 @@ public class PostService {
 
     private Post getPostEntityById(Long id){
         return postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
     }
 
     public PostResponse getPostById(Long id){
@@ -100,6 +101,11 @@ public class PostService {
                 updatedPost.getUser().getId(),
                 updatedPost.getUser().getName()
         );
+    }
+
+    public void deletePost(Long id){
+        Post post = getPostEntityById(id);
+        postRepository.delete(post);
     }
 
 }
