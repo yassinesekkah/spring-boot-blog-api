@@ -61,10 +61,14 @@ public class PostService {
                ).toList();
     }
 
+    private Post getPostEntityById(Long id){
+        return postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+    }
+
     public PostResponse getPostById(Long id){
 
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+        Post post = getPostEntityById(id);
 
         return new PostResponse(
                 post.getId(),
@@ -72,6 +76,29 @@ public class PostService {
                 post.getContent(),
                 post.getUser().getId(),
                 post.getUser().getName()
+        );
+    }
+
+    public PostResponse updatePost(PostRequest request, Long id){
+
+        Post post = getPostEntityById(id);
+
+        post.setTitle(request.getTitle());
+        post.setContent(request.getContent());
+
+        if(request.getUserId() != null){
+            User user = userService.getUserById(request.getUserId());
+            post.setUser(user);
+        }
+
+        Post updatedPost = postRepository.save(post);
+
+        return new PostResponse(
+                updatedPost.getId(),
+                updatedPost.getTitle(),
+                updatedPost.getContent(),
+                updatedPost.getUser().getId(),
+                updatedPost.getUser().getName()
         );
     }
 
