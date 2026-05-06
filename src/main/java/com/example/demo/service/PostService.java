@@ -6,6 +6,10 @@ import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
 import com.example.demo.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.sound.midi.Soundbank;
@@ -48,10 +52,13 @@ public class PostService {
         );
     }
 
-    public List<PostResponse> getPosts(){
-       List<Post> posts = postRepository.findAll();
+    public Page<PostResponse> getPosts(int page, int size){
 
-       return posts.stream().map(post ->
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Post> posts = postRepository.findAll(pageable);
+
+       return posts.map(post ->
                new PostResponse(
                        post.getId(),
                        post.getTitle(),
@@ -59,7 +66,7 @@ public class PostService {
                        post.getUser().getId(),
                        post.getUser().getName()
                )
-               ).toList();
+               );
     }
 
     private Post getPostEntityById(Long id){
@@ -124,7 +131,7 @@ public class PostService {
                         post.getUser().getName()
                 )
                 ).toList();
-        
+
     }
 
 }

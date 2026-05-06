@@ -4,6 +4,7 @@ import com.example.demo.dto.PostRequest;
 import com.example.demo.dto.PostResponse;
 import com.example.demo.entity.Post;
 import com.example.demo.service.PostService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,8 +26,8 @@ public class PostController {
     }
 
     @GetMapping
-    public List<PostResponse> getPosts(){
-        return postService.getPosts();
+    public Page<PostResponse> getPosts(@RequestParam int page, @RequestParam int size){
+        return postService.getPosts(page, size);
     }
 
     @GetMapping("{id}")
