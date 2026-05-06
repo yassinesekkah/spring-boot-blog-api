@@ -45,5 +45,10 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/user/{userId}")
+    public List<PostResponse> getPostsByUser(@PathVariable Long userId){
+        return postService.getPostByUserId(userId);
+    }
+
 
 }

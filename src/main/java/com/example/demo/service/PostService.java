@@ -108,4 +108,23 @@ public class PostService {
         postRepository.delete(post);
     }
 
+    public List<PostResponse> getPostByUserId(Long userId){
+
+        //ila makanch ghadi yraje3 404
+        userService.getUserById(userId);
+
+        List<Post> posts = postRepository.findPostByUserId(userId);
+
+        return posts.stream().map(post ->
+                new PostResponse(
+                        post.getId(),
+                        post.getTitle(),
+                        post.getContent(),
+                        post.getUser().getId(),
+                        post.getUser().getName()
+                )
+                ).toList();
+        
+    }
+
 }
