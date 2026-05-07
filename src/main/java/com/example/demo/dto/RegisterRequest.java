@@ -18,6 +18,8 @@ public class RegisterRequest {
     @Min(18)
     private int age;
 
+    public RegisterRequest(){}
+
     public RegisterRequest(String name, String email, String password, int age){
 
         this.name = name;
