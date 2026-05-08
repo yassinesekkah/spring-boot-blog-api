@@ -4,9 +4,12 @@ import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.RegisterRequest;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.sound.midi.Soundbank;
+import java.sql.SQLOutput;
 import java.util.Optional;
 
 @Service
@@ -14,10 +17,12 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder){
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public String register(RegisterRequest request){
@@ -48,13 +53,18 @@ public class AuthService {
 
     public String login(LoginRequest request){
 
+//        System.out.println(request.getEmail());
+//        System.out.println(request.getPassword());
+
         //get user
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
                         new RuntimeException("Invalid email or password"));
 
+//        System.out.println(user.getName());
 
         //check password
+        //matches kathashe lpassword dyal request wkadirlo compare m3a lpassword li f db
         boolean isPasswordCorrect = passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword()
@@ -64,7 +74,10 @@ public class AuthService {
             throw new RuntimeException("invalid email or password");
         }
 
-        return "Login successful";
+        //generate jwt token
+        String token = jwtService.generateToken(user.getEmail());
+
+        return token;
     }
 
 }
