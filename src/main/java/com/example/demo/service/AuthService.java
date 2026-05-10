@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.sound.midi.Soundbank;
 import java.sql.SQLOutput;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -51,7 +52,7 @@ public class AuthService {
         return "User registered successfully";
     }
 
-    public String login(LoginRequest request){
+    public Map<String, String> login(LoginRequest request){
 
 //        System.out.println(request.getEmail());
 //        System.out.println(request.getPassword());
@@ -77,7 +78,7 @@ public class AuthService {
         //generate jwt token
         String token = jwtService.generateToken(user.getEmail());
 
-        return token;
+        return Map.of("token", token);
     }
 
 }
