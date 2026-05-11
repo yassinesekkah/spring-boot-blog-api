@@ -13,6 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 @Component
 public class JwtAuthentificationFilter extends OncePerRequestFilter {
@@ -30,6 +31,14 @@ public class JwtAuthentificationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+        if (request.getMethod().equals("OPTIONS")) {
+
+            filterChain.doFilter(request, response);
+
+            return;
+
+        }
+
         final String authHeader = request.getHeader("Authorization");
 
         if(authHeader == null || !authHeader.startsWith("Bearer ")){
@@ -41,13 +50,13 @@ public class JwtAuthentificationFilter extends OncePerRequestFilter {
 
         String email = jwtService.extractEmail(token);
 
-        System.out.println(email);
+        System.out.println("This is the " + email);
 
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(
                         email,
                         null,
-                        new ArrayList<>()
+                        Collections.emptyList()
                 );
 
         SecurityContextHolder.getContext()
