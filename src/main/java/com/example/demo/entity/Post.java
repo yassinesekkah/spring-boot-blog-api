@@ -1,7 +1,10 @@
 package com.example.demo.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "posts")
@@ -18,6 +21,11 @@ public class Post {
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
+
+    @OneToMany(mappedBy = "post")
+    @JsonManagedReference
+    private List<Comment> comments;
+
 
     public Post(){}
 
