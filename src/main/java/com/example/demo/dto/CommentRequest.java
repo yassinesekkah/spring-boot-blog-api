@@ -2,27 +2,27 @@ package com.example.demo.dto;
 
 public class CommentRequest {
 
-    private Long id;
     private String content;
+    private Long postId;
 
     public CommentRequest(){}
 
-    public CommentRequest(Long id, String content){
-        this.id = id;
+    public CommentRequest(String content, Long postId){
         this.content = content;
+        this.postId = postId;
     }
 
     //getter and setters
-    public Long getId(){
-        return id;
-    }
     public String getContent(){
         return content;
     }
-    public void setId(Long id){
-        this.id = id;
+    public Long getPostId(){
+        return postId;
     }
-    public void setContent(String id){
+    public void setContent(String content){
         this.content = content;
+    }
+    public void setPostId(Long postId){
+        this.postId = postId;
     }
 }
