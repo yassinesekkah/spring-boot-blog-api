@@ -26,13 +26,19 @@ public class Post {
     @JsonManagedReference
     private List<Comment> comments;
 
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    @JsonBackReference
+    private Category category;
+
 
     public Post(){}
 
-    public Post(String title, String content, User user){
+    public Post(String title, String content, User user, Category category){
         this.title = title;
         this.content = content;
         this.user = user;
+        this.category = category;
     }
 
     //getters / setters
@@ -48,6 +54,8 @@ public class Post {
     public User getUser(){
         return user;
     }
+    public Category getCategory(){ return category; }
+    public List<Comment> getComments(){ return comments; }
 
     public void setId(Long id){
         this.id = id;
@@ -61,4 +69,6 @@ public class Post {
     public void setUser(User user){
         this.user = user;
     }
+    public void setCategory(Category category) { this.category = category; }
+    public void setComments(List<Comment> comments){ this.comments = comments; }
 }
