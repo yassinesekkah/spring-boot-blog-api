@@ -104,5 +104,15 @@ public class CategoryService {
 
     }
 
+    public void delete(Long id){
 
+        log.info("Deleting category with id: {}", id);
+
+        if(!categoryRepository.existsById(id)){
+            log.warn("Deleting failed - category not found with id: {}", id);
+            throw new EntityNotFoundException("Category not found with id " + id);
+        }
+
+        categoryRepository.deleteById(id);
+    }
 }
