@@ -19,6 +19,16 @@ public class Category {
 
     private LocalDateTime createdAt;
 
+    //JPA lifecycle hook
+    /**
+     * Had method kat-execute-i AUTOMATIC qbel ma JPA y-saviy l'entity.
+     * Ma t-y3yet-ch nta — JPA howa li kay-y3yet-ha.
+     */
+    @PrePersist
+    protected void onCreate(){
+        this.createdAt = LocalDateTime.now();
+    }
+
     // les relations
     @OneToMany(mappedBy = "category")
     @JsonManagedReference
