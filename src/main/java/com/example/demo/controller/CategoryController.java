@@ -6,10 +6,9 @@ import com.example.demo.repository.CategoryRepository;
 import com.example.demo.service.CategoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/categories")
@@ -29,5 +28,29 @@ public class CategoryController {
         CategoryResponse created = categoryService.create(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<CategoryResponse>> findAll(){
+
+        List<CategoryResponse> categories = categoryService.findAll();
+
+        return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoryResponse> findById(@PathVariable Long id){
+
+        CategoryResponse category = categoryService.findById(id);
+
+        return ResponseEntity.ok(category);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryResponse> update(@RequestBody CategoryRequest request, @PathVariable Long id){
+
+        CategoryResponse updated = categoryService.update(id, request);
+
+        return ResponseEntity.ok(updated);
     }
 }
