@@ -8,15 +8,17 @@ public class PostResponse {
 
     private Long userId;
     private String userName;
+    private CategoryResponse category;
 
     public PostResponse(){}
 
-    public PostResponse(Long id, String title, String content, Long userId, String userName){
+    public PostResponse(Long id, String title, String content, Long userId, String userName, CategoryResponse category){
         this.id = id;
         this.title = title;
         this.content = content;
         this.userId = userId;
         this.userName = userName;
+        this.category = category;
     }
 
     //getters / setters
@@ -35,6 +37,7 @@ public class PostResponse {
     public String getUserName(){
         return userName;
     }
+    public CategoryResponse getCategory(){ return  category; }
 
     public void setId(Long id){
         this.id = id;
@@ -51,4 +54,5 @@ public class PostResponse {
     public void setUserName(String userName){
         this.userName = userName;
     }
+    public void setCategory(CategoryResponse category){ this.category = category; }
 }
