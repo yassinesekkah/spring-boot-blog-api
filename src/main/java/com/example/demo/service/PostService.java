@@ -2,8 +2,10 @@ package com.example.demo.service;
 
 import com.example.demo.dto.PostRequest;
 import com.example.demo.dto.PostResponse;
+import com.example.demo.entity.Category;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
+import com.example.demo.mapper.PostMapper;
 import com.example.demo.repository.PostRepository;
 import jakarta.persistence.EntityNotFoundException;
 
@@ -12,7 +14,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.sound.midi.Soundbank;
 import java.util.List;
 
 @Service
@@ -20,16 +21,24 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserService userService;
+    private final CategoryService categoryService;
+    private final PostMapper postMapper;
 
-    public PostService(PostRepository postRepository, UserService userService){
+    public PostService(PostRepository postRepository, UserService userService,
+                       CategoryService categoryService, PostMapper postMapper){
         this.postRepository = postRepository;
         this.userService = userService;
+        this.categoryService = categoryService;
+        this.postMapper = postMapper;
     }
 
     public PostResponse createPost(PostRequest request){
 
         //get user
         User user =  userService.getUserById(request.getUserId());
+
+        //get categories
+        Category category = categoryService.getCategoryById(request.getCategoryId());
 
         //creation de post
         Post post = new Post();
@@ -38,18 +47,14 @@ public class PostService {
 
         //link with user
         post.setUser(user);
+        //lik with category
+        post.setCategory(category);
 
         //save
         Post savedPost = postRepository.save(post);
 
         //mapping
-        return new PostResponse(
-                savedPost.getId(),
-                savedPost.getTitle(),
-                savedPost.getContent(),
-                savedPost.getUser().getId(),
-                savedPost.getUser().getName()
-        );
+        return postMapper.toResponse(savedPost);
     }
 
     public Page<PostResponse> getPosts(int page, int size){
@@ -58,15 +63,7 @@ public class PostService {
 
         Page<Post> posts = postRepository.findAll(pageable);
 
-       return posts.map(post ->
-               new PostResponse(
-                       post.getId(),
-                       post.getTitle(),
-                       post.getContent(),
-                       post.getUser().getId(),
-                       post.getUser().getName()
-               )
-               );
+       return posts.map(postMapper::toResponse);
     }
 
     private Post getPostEntityById(Long id){
@@ -78,13 +75,7 @@ public class PostService {
 
         Post post = getPostEntityById(id);
 
-        return new PostResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getUser().getId(),
-                post.getUser().getName()
-        );
+        return postMapper.toResponse(post);
     }
 
     public PostResponse updatePost(PostRequest request, Long id){
@@ -94,20 +85,21 @@ public class PostService {
         post.setTitle(request.getTitle());
         post.setContent(request.getContent());
 
+        //user update
         if(request.getUserId() != null){
             User user = userService.getUserById(request.getUserId());
             post.setUser(user);
         }
 
+        //category update
+        if(request.getCategoryId() != null){
+            Category category = categoryService.getCategoryById(request.getCategoryId());
+            post.setCategory(category);
+        }
+
         Post updatedPost = postRepository.save(post);
 
-        return new PostResponse(
-                updatedPost.getId(),
-                updatedPost.getTitle(),
-                updatedPost.getContent(),
-                updatedPost.getUser().getId(),
-                updatedPost.getUser().getName()
-        );
+        return postMapper.toResponse(updatedPost);
     }
 
     public void deletePost(Long id){
@@ -122,15 +114,7 @@ public class PostService {
 
         List<Post> posts = postRepository.findPostByUserId(userId);
 
-        return posts.stream().map(post ->
-                new PostResponse(
-                        post.getId(),
-                        post.getTitle(),
-                        post.getContent(),
-                        post.getUser().getId(),
-                        post.getUser().getName()
-                )
-                ).toList();
+        return postMapper.toResponseList(posts);
 
     }
 

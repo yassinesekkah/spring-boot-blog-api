@@ -5,11 +5,13 @@ public class PostRequest {
     private String title;
     private String content;
     private Long userId;
+    private Long categoryId;
 
-    public PostRequest(String title, String content, Long userId){
+    public PostRequest(String title, String content, Long userId, Long categoryId){
         this.title = title;
         this.content = content;
         this.userId = userId;
+        this.categoryId = categoryId;
     }
 
     //getters / setters
@@ -22,6 +24,7 @@ public class PostRequest {
     public Long getUserId(){
         return userId;
     }
+    public Long getCategoryId() { return categoryId; }
 
     public void setTitle(String title){
         this.title = title;
@@ -32,4 +35,5 @@ public class PostRequest {
     public void setUserId(Long userId){
         this.userId = userId;
     }
+    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
 }

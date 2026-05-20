@@ -114,5 +114,15 @@ public class CategoryService {
         }
 
         categoryRepository.deleteById(id);
+        log.info("Category deleted successfully with id: {}", id);
+    }
+
+    public Category getCategoryById(Long id){
+
+        return categoryRepository.findById(id)
+                .orElseThrow(()-> {
+                    log.warn("category not found with id: {}", id);
+                    return new RuntimeException("Category not found with id: " + id);
+                });
     }
 }
