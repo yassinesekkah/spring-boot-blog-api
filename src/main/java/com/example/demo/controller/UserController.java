@@ -1,42 +1,43 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.UserResponse;
 import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService){
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    @GetMapping("/users")
-    public List<User> getUsers(){
-        return userService.getUsers();
+    @GetMapping
+    public ResponseEntity<List<UserResponse>> getUsers() {
+        return ResponseEntity.ok(userService.getUsers());
     }
 
-    @PostMapping("/users")
-    public User addUser(@RequestBody User user){
-        userService.addUser(user);
-        return user;
+    @PostMapping
+    public ResponseEntity<UserResponse> addUser(@RequestBody User user) {
+        UserResponse response = userService.addUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/users/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User user){
-
-        return userService.updateUser(id, user);
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody User user) {
+        return ResponseEntity.ok(userService.updateUser(id, user));
     }
 
-    @DeleteMapping("/users/{id}")
-    public String deleteUser(@PathVariable Long id){
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return "User with id " + id + " is deleted";
+        return ResponseEntity.noContent().build();
     }
-
 }
