@@ -4,6 +4,7 @@ import com.example.demo.dto.PostRequest;
 import com.example.demo.dto.PostResponse;
 import com.example.demo.entity.Post;
 import com.example.demo.service.PostService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class PostController {
     }
 
     @PostMapping
-    public PostResponse createPost(@RequestBody PostRequest request){
+    public PostResponse createPost(@Valid  @RequestBody PostRequest request){
         return postService.createPost(request);
     }
 
@@ -36,7 +37,7 @@ public class PostController {
     }
 
     @PutMapping("{id}")
-    public PostResponse updatePost(@RequestBody PostRequest request, @PathVariable Long id){
+    public PostResponse updatePost(@Valid @RequestBody PostRequest request, @PathVariable Long id){
         return postService.updatePost(request, id);
     }
 

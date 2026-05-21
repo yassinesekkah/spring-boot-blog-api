@@ -1,8 +1,16 @@
 package com.example.demo.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 public class CommentRequest {
 
+    @NotBlank(message = "Content is required")
+    @Size(min = 3, max = 200, message = "comment must be between 3 and 200")
     private String content;
+
+    @NotNull(message = "Post ID is required")
     private Long postId;
 
     public CommentRequest(){}

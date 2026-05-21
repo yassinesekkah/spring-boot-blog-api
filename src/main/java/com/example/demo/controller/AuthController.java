@@ -1,32 +1,33 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.LoginResponse;
 import com.example.demo.dto.RegisterRequest;
 import com.example.demo.service.AuthService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/auth")
-//@CrossOrigin(origins = "http://localhost:4200")
 public class AuthController {
 
     private final AuthService authService;
 
-    public AuthController(AuthService authService){
+    public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request){
-        return ResponseEntity.ok(authService.register(request));
+    public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
+        LoginResponse response = authService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequest request){
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
     }
 }

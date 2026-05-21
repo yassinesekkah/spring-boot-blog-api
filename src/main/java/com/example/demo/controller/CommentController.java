@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.CommentRequest;
 import com.example.demo.service.CommentService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,7 @@ public class CommentController {
     }
 
     @PostMapping
-    public CommentDTO createComment(@RequestBody CommentRequest request){
+    public CommentDTO createComment(@Valid @RequestBody CommentRequest request){
         return commentService.createComment(request);
     }
 

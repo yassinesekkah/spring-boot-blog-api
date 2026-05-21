@@ -4,23 +4,26 @@ import jakarta.validation.constraints.*;
 
 public class RegisterRequest {
 
-    @NotBlank
-    @Size(min = 2)
+    @NotBlank(message = "name is required")
+    @Size(min = 2, message = "name must be a least 2 characters")
     private String name;
 
-    @Email
-    @NotBlank
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email must be valid")
     private String email;
 
-    @Size(min = 8)
+    @NotBlank(message = "Password is required")
+    @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
-    @Min(18)
-    private int age;
+    @NotNull(message = "Age is required")
+    @Min(value = 18, message = "Age must be at least 18 ")
+    private Integer age;
 
     public RegisterRequest(){}
 
-    public RegisterRequest(String name, String email, String password, int age){
+    public RegisterRequest(String name, String email, String password, Integer age){
 
         this.name = name;
         this.email = email;
@@ -38,7 +41,7 @@ public class RegisterRequest {
     public String getPassword(){
         return password;
     }
-    public int getAge(){
+    public Integer getAge(){
         return age;
     }
 
@@ -51,7 +54,7 @@ public class RegisterRequest {
     public void setPassword(String password){
         this.password = password;
     }
-    public void setAge(int age){
+    public void setAge(Integer age){
         this.age = age;
     }
 }

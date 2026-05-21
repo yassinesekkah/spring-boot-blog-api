@@ -1,84 +1,82 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.LoginResponse;
 import com.example.demo.dto.RegisterRequest;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.security.JwtService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import javax.sound.midi.Soundbank;
-import java.sql.SQLOutput;
-import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService){
+    public AuthService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService,
+                       AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.authenticationManager = authenticationManager;
     }
 
-    public String register(RegisterRequest request){
+    // ========== REGISTER ==========
+    public LoginResponse register(RegisterRequest request) {
+        log.info("Registering user: {}", request.getEmail());
 
-        //check if email already exists
-        Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
-
-        if(existingUser.isPresent()){
-            throw new RuntimeException("Email already exists");
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already in use");
         }
 
-        //hash password
-        String hashedPassword = passwordEncoder.encode(request.getPassword());
+        User user = new User();
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));  // ← Hash!
+        user.setAge(request.getAge());
 
-        //create user
-        User user = new User(
-                request.getName(),
-                request.getEmail(),
-                hashedPassword,
-                request.getAge()
-        );
+        User saved = userRepository.save(user);
 
-        //save
-        userRepository.save(user);
+        // Generate token directement
+        String token = jwtService.generateToken(saved.getEmail(), saved.getId());
 
-        return "User registered successfully";
+        return new LoginResponse(token, saved.getEmail(), saved.getId());
     }
 
-    public Map<String, String> login(LoginRequest request){
+    // ========== LOGIN ==========
+    public LoginResponse login(LoginRequest request) {
+        log.info("Login attempt: {}", request.getEmail());
 
-//        System.out.println(request.getEmail());
-//        System.out.println(request.getPassword());
+        try {
+            // Spring Security validate credentials
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(), request.getPassword())
+            );
+        } catch (BadCredentialsException e) {
+            log.warn("Invalid credentials for: {}", request.getEmail());
+            throw new RuntimeException("Invalid email or password");
+        }
 
-        //get user
+        // Jib user
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-//        System.out.println(user.getName());
+        // Generate token
+        String token = jwtService.generateToken(user.getEmail(), user.getId());
 
-        //check password
-        //matches kathashe lpassword dyal request wkadirlo compare m3a lpassword li f db
-        boolean isPasswordCorrect = passwordEncoder.matches(
-                request.getPassword(),
-                user.getPassword()
-        );
-
-        if(!isPasswordCorrect){
-            throw new RuntimeException("invalid email or password");
-        }
-
-        //generate jwt token
-        String token = jwtService.generateToken(user.getEmail());
-
-        return Map.of("token", token);
+        return new LoginResponse(token, user.getEmail(), user.getId());
     }
-
 }
