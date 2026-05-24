@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.LoginResponse;
 import com.example.demo.dto.RegisterRequest;
+import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import org.slf4j.Logger;
@@ -46,6 +47,7 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));  // ← Hash!
         user.setAge(request.getAge());
+        user.setRole(Role.ROLE_USER);
 
         User saved = userRepository.save(user);
 
