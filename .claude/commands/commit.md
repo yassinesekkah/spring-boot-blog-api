@@ -1,0 +1,1 @@
+Run `git diff --staged` to see what's staged, then generate a single short commit message following Conventional Commits format (feat/fix/refactor/docs/chore). Output ONLY the commit message, nothing else. No explanation, no code block, just the raw message text.
