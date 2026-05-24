@@ -29,39 +29,75 @@ I am a beginner learning Spring Boot and Angular. I have done basic tutorials on
 **Goal:** Build a Blog API to learn Spring Boot + Angular step by step.
 
 **Tech stack:**
-- Backend: Java 17+, Spring Boot, Spring Web, Spring Data JPA
-- Database: PostgreSQL
+- Backend: Java 17, Spring Boot 4.0.6, Spring Web, Spring Data JPA, Spring Security
+- Database: PostgreSQL (H2 for tests)
 - Build: Maven
-- Frontend: Angular + TypeScript + RxJS (later phase)
-- Helpers: Lombok, Jackson
+- Auth: JWT with RS256 (RSA keys) via JJWT 0.12.5
+- Frontend: Angular + TypeScript + RxJS (next phase)
+- Helpers: Lombok, Jackson, Bean Validation
 
 **Phases:**
-1. **Phase 1 (current):** Backend CRUD — Post entity only
-2. **Phase 2:** Add Comment entity + relations (OneToMany)
-3. **Phase 3:** Add DTOs + validation
-4. **Phase 4:** Angular frontend
-5. **Phase 5 (optional, much later):** Auth, tests, deployment
-
-⚠️ **We are in Phase 1.** Don't introduce concepts from later phases unless I ask.
+1. **Phase 1 ✅** — Backend CRUD — Post entity
+2. **Phase 2 ✅** — Comment entity + OneToMany relations
+3. **Phase 3 ✅** — DTOs + Mappers + Validation + Category entity
+4. **Phase 4 ✅** — JWT Authentication (RS256), Spring Security, User registration/login
+5. **Phase 5 (current):** JWT security hardening (current branch: `jwt_security`)
+6. **Phase 6 (next):** Angular frontend
 
 ---
 
 ## 🏗️ Project Architecture
 
-Layered architecture:
+Package root: `com.example.demo`
 
 ```
-src/main/java/com/example/blog/
+src/main/java/com/example/demo/
 ├── controller/    → REST endpoints (thin, no logic)
+│   ├── AuthController.java
+│   ├── CategoryController.java
+│   ├── CommentController.java
+│   ├── PostController.java
+│   └── UserController.java
 ├── service/       → Business logic
+│   ├── AuthService.java
+│   ├── CategoryService.java
+│   ├── CommentService.java
+│   ├── JwtService.java
+│   ├── PostService.java
+│   └── UserService.java
 ├── repository/    → Database access (JpaRepository)
-├── entity/        → JPA entities (@Entity)
-├── dto/           → Request/Response objects (added in Phase 3)
-├── config/        → Configuration classes (later)
-└── exception/     → Custom exceptions + handler (later)
+│   ├── CategoryRepository.java
+│   ├── CommentRepository.java
+│   ├── PostRepository.java
+│   └── UserRepository.java
+├── entity/        → JPA entities
+│   ├── Category.java
+│   ├── Comment.java
+│   ├── Post.java
+│   └── User.java
+├── dto/           → Request/Response objects
+│   ├── CategoryRequest.java / CategoryResponse.java
+│   ├── CommentDTO.java / CommentRequest.java
+│   ├── LoginRequest.java / LoginResponse.java
+│   ├── PostRequest.java / PostResponse.java
+│   ├── RegisterRequest.java
+│   └── UserResponse.java
+├── mapper/        → Entity ↔ DTO conversion (manual, no MapStruct)
+│   ├── CategoryMapper.java
+│   ├── CommentMapper.java
+│   ├── PostMapper.java
+│   └── UserMapper.java
+├── config/        → Spring configuration
+│   ├── KeyConfig.java     (loads RSA keys for JWT)
+│   └── SecurityConfig.java (Spring Security rules)
+├── security/      → JWT filter + UserDetails
+│   ├── CorsConfig.java
+│   ├── JwtAuthFilter.java
+│   ├── UserDetailsImpl.java
+│   └── UserDetailsServiceImpl.java
+└── exception/     → Global error handling
+    └── GlobalExceptionHandler.java
 ```
-
-**Rule:** Don't create a folder until we actually need it. No empty `dto/` or `exception/` folders in Phase 1.
 
 ---
 
@@ -74,78 +110,68 @@ src/main/java/com/example/blog/
 - Don't refactor working code unless I ask
 
 ### Controllers
-- Annotate with `@RestController` + `@RequestMapping("/api/posts")`
+- Annotate with `@RestController` + `@RequestMapping`
 - Return `ResponseEntity<>` for proper HTTP status codes
 - Keep them THIN — they only receive request and call service
 - ❌ No business logic in controllers
 - ❌ No database calls in controllers
 
-Example:
-```java
-@RestController
-@RequestMapping("/api/posts")
-public class PostController {
-
-    private final PostService postService;
-
-    public PostController(PostService postService) {  // Constructor injection
-        this.postService = postService;
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Post>> getAll() {
-        return ResponseEntity.ok(postService.findAll());
-    }
-}
-```
-
 ### Services
 - Annotate with `@Service`
-- Constructor injection (NOT `@Autowired` on fields — explain why if I ask)
+- Constructor injection (NOT `@Autowired` on fields)
 - All business logic here
 
 ### Repositories
 - Interface extending `JpaRepository<Entity, IdType>`
 - No implementation needed — Spring generates it
 
-```java
-public interface PostRepository extends JpaRepository<Post, Long> {
-}
-```
-
 ### Entities
 - `@Entity` + `@Table(name = "...")` if name differs
 - `@Id` + `@GeneratedValue(strategy = GenerationType.IDENTITY)` for PostgreSQL
 - Use Lombok: `@Getter`, `@Setter`, `@NoArgsConstructor`, `@AllArgsConstructor`
-- Avoid `@Data` on entities (causes problems with relations — I'll explain when relevant)
+- Avoid `@Data` on entities (causes problems with relations)
 
-### Relations (Phase 2+)
-When we add Comments:
-- Use `@OneToMany(mappedBy = "post")` on Post
-- Use `@ManyToOne` + `@JoinColumn(name = "post_id")` on Comment
-- Prevent infinite JSON recursion with `@JsonManagedReference` / `@JsonBackReference`
-- ⚠️ When we get there, **explain the recursion problem first**, then show the fix.
+### Entity Relations (implemented)
+- User → Post: `@OneToMany(mappedBy = "user")` on User, `@ManyToOne` + `@JoinColumn` on Post
+- Post → Comment: `@OneToMany(mappedBy = "post")` on Post, `@ManyToOne` + `@JoinColumn` on Comment
+- Post → Category: `@ManyToOne` + `@JoinColumn(name = "category_id")` on Post
 
-### DTOs (Phase 3+)
-- Don't expose entities directly in API responses
-- Naming: `PostRequest`, `PostResponse`, `CommentRequest`, `CommentResponse`
-- Map manually first (so I understand), then introduce MapStruct only if I ask
+### DTOs & Mappers
+- Entities are never returned directly in API responses — always use DTOs
+- Manual mapping in `*Mapper.java` classes (no MapStruct)
+- Naming: `*Request` for input, `*Response` / `*DTO` for output
+
+### JWT Authentication
+- Algorithm: RS256 (RSA asymmetric — private key signs, public key verifies)
+- RSA keys loaded via `KeyConfig.java` from `application.properties`
+- Token contains: email + userId claims
+- `JwtAuthFilter` intercepts every request, validates token, sets SecurityContext
+- Public routes: `/auth/register`, `/auth/login`
+- All other routes require `Authorization: Bearer <token>` header
 
 ---
 
-## 🌐 REST API Conventions
+## 🌐 REST API Endpoints
 
-| Action          | Method | URL              |
-|-----------------|--------|------------------|
-| List all posts  | GET    | `/api/posts`     |
-| Get one post    | GET    | `/api/posts/{id}`|
-| Create post     | POST   | `/api/posts`     |
-| Update post     | PUT    | `/api/posts/{id}`|
-| Delete post     | DELETE | `/api/posts/{id}`|
+### Auth (public)
+| Action    | Method | URL              |
+|-----------|--------|------------------|
+| Register  | POST   | `/auth/register` |
+| Login     | POST   | `/auth/login`    |
 
-❌ Never: `/getPosts`, `/createPost`, `/post/delete/1`
+### Posts (protected)
+| Action         | Method | URL                      |
+|----------------|--------|--------------------------|
+| List all       | GET    | `/posts` (with pagination)|
+| Get one        | GET    | `/posts/{id}`            |
+| Create         | POST   | `/posts`                 |
+| Update         | PUT    | `/posts/{id}`            |
+| Delete         | DELETE | `/posts/{id}`            |
+| By user        | GET    | `/posts/user/{userId}`   |
 
-Status codes:
+### Categories, Comments, Users — similar CRUD pattern
+
+**Status codes:**
 - `200 OK` — success with body
 - `201 Created` — POST success
 - `204 No Content` — DELETE success
@@ -165,24 +191,29 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 ```
 
-⚠️ **Security rule:** Never commit passwords. Use `${DB_PASSWORD}` and set it via:
-- `.env` file (gitignored), or
-- Environment variable, or
-- `application-local.properties` (gitignored)
+**RSA key config** (also in `application.properties`):
+```properties
+rsa.private-key=<base64 or PEM>
+rsa.public-key=<base64 or PEM>
+```
 
-Add to `.gitignore`:
+⚠️ **Security rule:** Never commit passwords or RSA private keys. Use environment variables or `application-local.properties` (gitignored).
+
+`.gitignore` should include:
 ```
 .env
 application-local.properties
 target/
 .idea/
 *.iml
+*.pem
 ```
 
 ---
 
-## 🧪 Testing (Phase 5)
-Not yet — but when we get there: JUnit 5 + `@SpringBootTest`, `@WebMvcTest`, MockMvc.
+## 🧪 Testing
+
+Not yet implemented. When we get there: JUnit 5 + `@SpringBootTest`, `@WebMvcTest`, MockMvc.
 
 ---
 
@@ -210,19 +241,20 @@ When helping me:
 
 1. **Don't write large blocks of code without explanation.** If file > 30 lines, walk me through the important parts.
 2. **New annotation = explanation required.** First time you write `@Transactional`, `@Valid`, `@PathVariable`, etc., tell me what it does in 1–2 sentences.
-3. **Suggest, don't impose.** If you think we should add validation, say "we could add validation here, want me to show you?" — don't just add it.
-4. **Run commands when needed.** If you can run `mvn spring-boot:run` or check files, do it — don't just tell me to do it (unless it's something I should learn to do myself).
-5. **At end of each significant change**, give me a "what to try next" — like "try hitting `GET /api/posts` with curl to verify".
-6. **Don't skip ahead.** No Docker, no JWT, no MapStruct, no Swagger in Phase 1 even if it would be "better".
+3. **Suggest, don't impose.** If you think we should add something, ask first — don't just add it.
+4. **Run commands when needed.** If you can run `mvn spring-boot:run` or check files, do it.
+5. **At end of each significant change**, give me a "what to try next".
+6. **Security context:** JWT + RS256 is already implemented. Don't re-explain basics unless I ask. Focus on what's missing or broken on the current `jwt_security` branch.
 
 ---
 
 ## 📋 Current Status
 
-**Phase:** 1 — Backend CRUD setup
-**Last completed:** [update this each session]
+**Phase:** 5 — JWT security hardening
+**Branch:** `jwt_security`
+**Last completed:** Migrated JWT signing from HS256 to RS256 + added UserResponse DTO
 **Next step:** [update this each session]
 
 ---
 
-**Last updated:** 2026-05-18    
+**Last updated:** 2026-05-23
