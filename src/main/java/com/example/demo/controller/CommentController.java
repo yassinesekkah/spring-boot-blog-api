@@ -5,6 +5,7 @@ import com.example.demo.dto.CommentRequest;
 import com.example.demo.service.CommentService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,6 +31,7 @@ public class CommentController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteComment(@PathVariable Long id){
         commentService.deleteComment(id);
         return ResponseEntity.noContent().build();
